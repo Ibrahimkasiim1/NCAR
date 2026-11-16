@@ -1,33 +1,61 @@
-## NCAR won BEST TRAVEL AND TRANSPORTATION HACK at MakeUofT
-Devpost: https://devpost.com/software/ncar-nighttime-collision-avoidance-system
+# NCAR: Nighttime Collision Avoidance Response
 
-## Inspiration
-As OEMs(Original equipment manufacturers) and consumers keep putting on brighter and brighter lights, this can be blinding for oncoming traffic. Along with the fatigue and difficulty judging distance, it becomes increasingly harder to drive safely at night. Having an extra pair of night vision would be essential to protect your eyes and that's where the NCAR comes into play. The Nighttime Collision Avoidance Response system provides those extra sets of eyes via an infrared camera that uses machine learning to classify obstacles in the road that are detected and projects light to indicate obstacles in the road and allows safe driving regardless of the time of day.
+A low-cost wearable that helps drivers see pedestrians at night. An infrared camera and an on-device ML model detect people on the road in the dark, and an OLED display projects an alert onto the windshield. **Winner of Best Travel and Transportation Hack at MakeUofT 2022.**
 
-## What it does
-NCAR provides users with an affordable wearable tech that ensures driver safety at night
-With its machine learning model, it can detect when humans are on the road when it is pitch black
-The NCAR alerts users of obstacles on the road by projecting a beam of light onto the windshield using the OLED Display
-If the user’s headlights fail, the infrared camera can act as a powerful backup light
-## How we built it
-- Machine Learning Model: Tensorflow API
-- Python Libraries: OpenCV, PyGame
-- Hardware: (Raspberry Pi 4B), 1 inch OLED display, Infrared Camera 
-## Challenges we ran into
-- Training machine learning model with limited training data
-- Infrared camera breaking down, we had to use old footage of the ml model
+<!-- Add a photo of the hardware or a demo GIF here, e.g. ![demo](docs/demo.gif) -->
 
-## Accomplishments that we're proud of
-- Implementing a model that can detect human obstacles from 5-7 meters from the camera
-- building a portable design that can be implemented on any car
+[Devpost](https://devpost.com/software/ncar-nighttime-collision-avoidance-system)
 
-## What we learned
-- Learned how to code different hardware sensors together
-- Building a Tensorflow model on a Raspberry PI
-- Collaborating with people with different backgrounds, skills and experiences
+## Features
 
-## What's next for NCAR: Nighttime Collision Avoidance System
-- Building a more custom training model that can detect and interpolate the distances of the obstacles to the user
-- A more sophisticated system of alerting users of obstacles on the path that is easy to maneuver
-- Be able to adjust the OLED screen with a 3d printer to display light in a more noticeable way
+- Detects people on the road in near-total darkness using an infrared camera
+- Runs object detection entirely on a Raspberry Pi, with no cloud connection
+- Flashes an "OBJECT DETECTED" alert on an OLED display that reflects onto the windshield
+- Works as a backup set of eyes if the car's headlights fail
+- Portable design that can be mounted in any car
 
+## How it works
+
+```
+IR camera ──frames──▶ Raspberry Pi 4B ──▶ EfficientDet-Lite0 (TFLite) ──"person"?──▶ SSD1306 OLED ──▶ windshield
+```
+
+`NCAR.py` captures frames with OpenCV and runs them through an EfficientDet-Lite0 TensorFlow Lite detector (optionally on a Coral Edge TPU). When a person is detected, the Pi drives a 128×64 SSD1306 OLED over I2C to show an alert, which is reflected onto the windshield in the driver's line of sight.
+
+## Tech stack
+
+- **ML:** TensorFlow Lite (EfficientDet-Lite0), optional Coral Edge TPU
+- **Software:** Python, OpenCV, Pillow, Adafruit CircuitPython
+- **Hardware:** Raspberry Pi 4B, infrared camera, 1" SSD1306 OLED display
+
+## Results
+
+- Won **Best Travel and Transportation Hack** at MakeUofT 2022
+- Detects people at **5–7 m** from the camera in the dark
+
+## Running it locally
+
+Requires a Raspberry Pi with a camera and an SSD1306 OLED wired over I2C (address `0x3C`, reset on GPIO 4).
+
+1. Clone the repo and install the dependencies and models:
+   ```bash
+   git clone https://github.com/Ibrahimkasiim1/NCAR.git
+   cd NCAR
+   sh setup.sh
+   ```
+2. Run the detector:
+   ```bash
+   python3 NCAR.py --model efficientdet_lite0.tflite
+   # with a Coral Edge TPU:
+   python3 NCAR.py --model efficientdet_lite0_edgetpu.tflite --enableEdgeTPU
+   ```
+
+## Team
+
+Built at MakeUofT 2022 by:
+
+- [Mustafa](https://github.com/Mustaballer)
+- [Ibrahim](https://github.com/Ibrahimkasiim1)
+<!-- Add the other teammates and who built what -->
+
+The object detection pipeline is adapted from the [TensorFlow Lite examples](https://github.com/tensorflow/examples) (Apache 2.0).
